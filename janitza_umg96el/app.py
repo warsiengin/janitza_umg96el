@@ -31,7 +31,7 @@ SENSORS = [
     {"key": "current_l3", "name": "Current I L3", "address": 19016, "unit": "A", "device_class": "current"},
     {"key": "current_neutral", "name": "Neutral return current", "address": 19018, "unit": "A", "device_class": "current"},
     {"key": "frequency", "name": "Grid frequency", "address": 19050, "unit": "Hz", "device_class": "frequency", "icon": "mdi:sine-wave"},
-    {"key": "active_power", "name": "Total real power", "address": 19026, "unit": "W", "device_class": "power"},
+    {"key": "active_power", "name": "Total real power", "address": 19026, "unit": "kW", "scale": 0.001, "device_class": "power"},
     {"key": "apparent_power", "name": "Total apparent power", "address": 19034, "unit": "VA", "device_class": "apparent_power"},
     {"key": "reactive_power", "name": "Fundamental reactive power", "address": 19042, "unit": "var", "device_class": "reactive_power"},
     {"key": "power_factor_l1", "name": "Power factor L1", "address": 19044, "icon": "mdi:angle-acute"},
@@ -41,7 +41,8 @@ SENSORS = [
         "key": "real_energy_consumed",
         "name": "Real energy consumed",
         "address": 19068,
-        "unit": "Wh",
+        "unit": "kWh",
+        "scale": 0.001,
         "device_class": "energy",
         "state_class": "total_increasing",
     },
@@ -49,7 +50,8 @@ SENSORS = [
         "key": "real_energy_delivered",
         "name": "Real energy delivered",
         "address": 19076,
-        "unit": "Wh",
+        "unit": "kWh",
+        "scale": 0.001,
         "device_class": "energy",
         "state_class": "total_increasing",
     },
@@ -178,6 +180,7 @@ def read_sensor(client, sensor, unit_id):
 
     # Convert two big-endian registers into the meter's 32-bit float format.
     value = struct.unpack(">f", struct.pack(">HH", *response.registers))[0]
+    value *= sensor.get("scale", 1)
     if not math.isfinite(value):
         raise RuntimeError(f"Invalid non-finite value at register {sensor['address']}")
     return value
@@ -193,7 +196,7 @@ def poll_device(options, mqtt_client):
                 value = read_sensor(modbus, sensor, options["unit_id"])
                 mqtt_client.publish(
                     f'{options["mqtt_topic_prefix"]}/{sensor["key"]}/state',
-                    payload=format(value, ".7g"),
+                    payload=format(value, ".2f"),
                     qos=1,
                     # Retained state gives Home Assistant the latest value on reconnect.
                     retain=True,

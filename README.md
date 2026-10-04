@@ -80,15 +80,15 @@ The decoder uses big-endian byte and word order.
 | Current I L2 | 19014 | A |
 | Current I L3 | 19016 | A |
 | Neutral return current | 19018 | A |
-| Total real power | 19026 | W |
+| Total real power | 19026 | kW |
 | Total apparent power | 19034 | VA |
 | Fundamental reactive power | 19042 | var |
 | Power factor L1 | 19044 | — |
 | Power factor L2 | 19046 | — |
 | Power factor L3 | 19048 | — |
 | Grid frequency | 19050 | Hz |
-| Real energy consumed | 19068 | Wh |
-| Real energy delivered | 19076 | Wh |
+| Real energy consumed | 19068 | kWh |
+| Real energy delivered | 19076 | kWh |
 | Apparent energy | 19084 | VAh |
 | Fundamental reactive energy | 19092 | varh |
 | Voltage THD L1-N | 19110 | % |
@@ -98,6 +98,7 @@ The decoder uses big-endian byte and word order.
 | Current THD L2 | 19118 | % |
 | Current THD L3 | 19120 | % |
 
+Power and real-energy register values are divided by 1,000 before publishing.
 Energy accumulators use the `total_increasing` state class. Other values are
 published as measurements.
 
