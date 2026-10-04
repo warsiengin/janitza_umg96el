@@ -13,12 +13,17 @@ creates one device with 27 sensors.
 
 ## Install
 
-1. Copy the `janitza_umg96el` directory into Home Assistant's local add-ons
-   directory, for example `/addons/janitza_umg96el`.
-2. Reload local add-ons in **Settings → Add-ons → Add-on Store**.
-3. Install **Janitza UMG 96-EL** and open its **Configuration** tab.
-4. Set the MQTT password and confirm the meter and broker settings.
-5. Save, start the add-on, and check its log for connection or polling errors.
+1. In Home Assistant, open **Settings → Add-ons → Add-on Store** and select
+   **⋮ → Repositories**.
+2. Add `https://github.com/warsiengin/janitza_umg96el` and save.
+3. Find **Janitza UMG 96-EL** in the store and install it.
+4. Open its **Configuration** tab, set the MQTT password, and confirm the
+   meter and broker settings.
+5. Save, start the app, and check its log for connection or polling errors.
+
+Alternatively, copy the `janitza_umg96el` directory into Home Assistant's local
+apps directory, for example `/addons/janitza_umg96el`, then reload local apps
+in the store.
 
 The broker must permit the add-on to publish under the configured topic prefix
 and `homeassistant/sensor/` discovery topics. MQTT over TLS is not currently
