@@ -4,6 +4,15 @@ This add-on polls a Janitza UMG 96-EL over Modbus TCP and publishes its
 measurements to an MQTT broker. Home Assistant MQTT Discovery automatically
 creates one device with 27 sensors.
 
+## Modbus reference
+
+See the supplied [Janitza UMG 96-EL Modbus Guide](docs/Janitza_UMG_96EL_Modbus_Guide.pdf)
+for the meter's Modbus register information. The register addresses and data
+format used by this add-on are listed in the **Measurements** section below.
+The add-on currently publishes the 27 measurements implemented in its sensor
+map; the guide may describe additional meter capabilities that are not exposed
+as sensors here.
+
 ## Requirements
 
 - Home Assistant with support for local add-ons.
@@ -45,6 +54,16 @@ configured by this add-on.
 
 Credentials are supplied through the add-on settings and should not be added to
 the source files.
+
+## Usage
+
+After saving the add-on configuration, start the add-on from its **Info** tab.
+It connects to the MQTT broker, publishes Home Assistant MQTT Discovery
+configuration, and then reads each configured Modbus register in turn. Values
+and availability are retained in MQTT; the next polling pass begins after the
+configured `scan_interval` delay. Check the add-on log for successful
+connections and any register read errors. In Home Assistant, the discovered
+entities appear under the **Janitza UMG 96-EL** device.
 
 ## MQTT and Home Assistant
 
@@ -119,6 +138,13 @@ published as measurements.
 
 ## Development
 
+The polling and MQTT Discovery implementation is in
+[`janitza_umg96el/app.py`](janitza_umg96el/app.py). Its `SENSORS` map defines
+register addresses, names, units, and Home Assistant metadata;
+`read_sensor()` decodes each two-register IEEE-754 float and applies any scale
+factor; `poll_device()` reads and publishes values; and `main()` loads the
+add-on settings and manages the polling lifecycle. Function docstrings in the
+source describe these responsibilities and their key assumptions.
+
 The add-on image is built from `janitza_umg96el/Dockerfile`. Python package
-versions are pinned in `janitza_umg96el/requirements.txt`. The polling and
-Discovery implementation is in `janitza_umg96el/app.py`.
+versions are pinned in `janitza_umg96el/requirements.txt`.

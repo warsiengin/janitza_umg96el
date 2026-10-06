@@ -1,3 +1,11 @@
+"""Poll Janitza UMG 96-EL Modbus registers and publish Home Assistant MQTT sensors.
+
+At runtime, Home Assistant supplies add-on configuration at
+``/data/options.json``. The sensor map below uses the meter's documented
+register addresses and expects each value as a big-endian IEEE-754 float
+spanning two holding registers.
+"""
+
 import json
 import logging
 import math
@@ -81,11 +89,13 @@ SENSORS = [
 
 
 def stop(_signum, _frame):
+    """Request a clean shutdown after the current polling operation."""
     global RUNNING
     RUNNING = False
 
 
 def read_options():
+    """Load and validate the required Home Assistant add-on options."""
     options_path = "/data/options.json"
     try:
         with open(options_path, encoding="utf-8") as options_file:
@@ -110,6 +120,7 @@ def read_options():
 
 
 def make_mqtt_client(options):
+    """Create the MQTT client and configure its availability callback."""
     client = mqtt.Client(
         mqtt.CallbackAPIVersion.VERSION2,
         client_id=f"{DEVICE_ID}_addon",
@@ -133,6 +144,7 @@ def make_mqtt_client(options):
 
 
 def publish_discovery(client, options):
+    """Publish retained Home Assistant MQTT Discovery configs for all sensors."""
     prefix = options["mqtt_topic_prefix"]
     device = {
         "identifiers": [DEVICE_ID],
@@ -168,6 +180,7 @@ def publish_discovery(client, options):
 
 
 def read_sensor(client, sensor, unit_id):
+    """Read and decode one sensor's two holding registers as a float."""
     response = client.read_holding_registers(
         address=sensor["address"],
         count=2,
@@ -187,6 +200,7 @@ def read_sensor(client, sensor, unit_id):
 
 
 def poll_device(options, mqtt_client):
+    """Connect to the meter, publish sensor states, and always close the client."""
     modbus = ModbusTcpClient(options["host"], port=options["port"], timeout=5)
     try:
         if not modbus.connect():
@@ -213,6 +227,7 @@ def poll_device(options, mqtt_client):
 
 
 def main():
+    """Load settings and run the MQTT-connected polling loop until stopped."""
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
     options = read_options()
@@ -238,6 +253,7 @@ def main():
                     LOGGER.error("Unable to poll the Janitza meter: %s", err)
             else:
                 LOGGER.warning("MQTT is disconnected; waiting for automatic reconnection")
+            # scan_interval is a delay after polling, not a fixed start-to-start period.
             time.sleep(options["scan_interval"])
     finally:
         mqtt_client.publish(f'{options["mqtt_topic_prefix"]}/status', "offline", qos=1, retain=True)
